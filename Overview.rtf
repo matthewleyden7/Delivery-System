@@ -1,0 +1,146 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Times New Roman;}{\f1\fnil Times New Roman;}{\f2\froman\fprq2\fcharset0 Times New Roman;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Riched20 10.0.18362}{\*\mmathPr\mdispDef1\mwrapIndent1440 }\viewkind4\uc1 
+\pard\box\brdrdash\brdrw0 \sa200\sl276\slmult1\b\f0\fs24\lang9 Matthew Leyden\line Student ID: 001008459\line Data Structures and Algorithms 2\par
+Problem description\par
+\b0 The task we are assigned is to find out how to deliver 40 packages using 3 trucks and two drivers while optimizing mileage and time. The restrictions are as follows:\par
+\f1\fs20\bullet   Each truck can carry a maximum of 16 packages.\par
+\bullet   \f0\lang1033 The t\f1\lang9 rucks travel at an average speed of 18 miles per hour.\par
+\bullet   \f0\lang1033 The t\f1\lang9 rucks have a\f0\lang1033 n\f1\lang9  \f0\lang1033 infinite amount of gas\f1\lang9  with no need to stop.\par
+\bullet   Each driver stays with the same truck as long as that truck is in service.\par
+\bullet   Drivers leave the hub at 8:00 a.m., with the truck loaded, and can return to the hub for packages if needed. The day ends when all 40 packages have been delivered.\par
+\bullet   Delivery time is instantaneous, i.e., no time passes while at a delivery (that time is factored into the average speed of the trucks).\par
+\bullet   There is up to one special note for each package.\par
+\bullet   The wrong delivery address for package #9, Third District Juvenile Court, will be corrected at 10:20 a.m. The correct address is 410 S State St., Salt Lake City, UT 84111.\par
+\bullet   The package ID is unique; there are no collisions.\b\f0\par
+\fs24 Core algorithm overview\par
+\b0 I used a Graph and a Hash Map to implement my program (located in package_handling.py). \b\par
+\b0 1. \lang1033 Create classes for different aspects of the program. These include the HashMap, The distance graph, and the truck class\par
+2. Open the Packages csv file, parse the information, and load the package information into the Hashmap. The hashmap implements a list of lists. \par
+3. Open the Distances csv file, parse the information, and load the distances information with the Graph class. This will create 2 dictionaries: a vertex dictionary and an edge dictionary. The vertex dictionary contains keys of address and values of a list of packages that will be delivered to that address. The edge dictionary functions like an adjacency list and it will be used to calculate distance information on the route.\par
+4. The packages are loaded onto the trucks. They are first sorted into three different lists. The first list contains "special" packages. These include any packages that have a special note. The notes are parsed to derive information in the note that is used to guide the package to the most appropriate truck. The special packages are loaded first. The second list contains "priority" packages. These include any packages that have an earlier deadline than the end of the day. The third list includes regular packages. The priority packages and regular packages use the same loading algorithm but the priority go first. \par
+5.  The truck's route is then passed through a greedy path function which will find a better route for the truck to take. This function uses the Graph's edge dictionary to find the shortest distance between two points starting from the WGUPS station. This will be used extensively by the deliver function.\par
+6. \lang9 Users can enter any time they wish to view the deliveries at that time. The deliver function takes a time and handles the calculation of miles traveled and delivery time for each package. The information is displayed in a professional and easy to understand manner and includes information about truck delivery times, whether or not the truck is at the station or has returned to the station, and the estimated time of arrival to the next location. Users can also make certain modifications after delivering has begun. They can remove a package if the truck has not left the station. They can cancel a package if it's already left the station which will label it canceled and adjust the route. If the package is already delivered, they can no longer remove it (although they can enter an earlier time and try again if they wish). They can search for a package by id, which will use the Hashmap to quickly find the package and display all required information about the package at the current time of delivery.\lang1033\par
+
+\pard\nowidctlpar\lang9\line\b B1:  \b0 Comment using pseudocode to show the logic of the algorithm applied to this software solution.\par
+
+\pard\box\brdrdash\brdrw0 \sa200\sl276\slmult1\par
+\lang1033 * package_handling -  HashMap insert_pkg (key, value )\par
+hash key = hash(key) % len (HashMap)\par
+bucket = HashMap [ hash key ]\par
+for item in bucket:\par
+\tab itemkey = item[0]\par
+\tab if itemkey == key:\par
+\tab\tab return item\par
+\par
+truck_handling - load_trucks()\par
+if package has no special note:\par
+\tab append package to special_packages\par
+elif package has earlier deadline:\par
+\tab append package to priority_packages\par
+else:\par
+\tab append package to regular_packages\par
+for item in special packages:\par
+\tab if "must be on" or  "on truck" in note:\par
+\tab\tab parse truck name from note\par
+\tab\tab insert into truck with truck name\par
+\tab elif "must be with" in note:\par
+\tab\tab parse integer strings from note\par
+\tab\tab append to truck_groups list\par
+\tab\tab assign list to same truck\par
+\tab elif "delayed" in notes\par
+\tab\tab parse integer hours, minutes from note.\par
+\tab\tab set time_delay hours, minutes\par
+\tab\tab if time_delay greater than 8:00 and less than 10:00:\par
+\tab\tab\tab assign to truck 2\par
+\tab\tab elif time_delay > 10:00:\par
+\tab\tab\tab assign to truck 3\par
+\tab elif "wrong address" in note:\par
+\tab\tab assign to truck 3\par
+\par
+* truck_handling.py - sort_packages()\par
+for item in priority packages and regular packages:\par
+\tab if item id in truck_groups:\par
+\tab\tab put item on same truck\par
+\tab elif item address in truck route and deadline is 17:00:\par
+\tab\tab assign to same truck\par
+\tab elif truck payload < 16:\par
+\tab\tab assign to truck 1, then truck2, then truck 3\par
+\par
+* package_handling.py - prepare_packages (file)\par
+Initialize HashMap\par
+Open file and read\par
+for row in file:\par
+\tab insert row into HashMap\par
+return HashMap\par
+\par
+\par
+* package_handling.py - prepare_distance_graph (file, HashMap)\par
+Initialize Graph and distance list\par
+Open file and read\par
+for row in file:\par
+\tab add address to graph as vertex\par
+\tab add row to distance list\par
+for item in distance list:\par
+\tab add edge to graph\par
+\tab   \par
+* truck_handling.py - find_greedy_path(route)\par
+route_copy = route\par
+path_greedy = [start]\par
+While route_copy is not empty:\par
+\tab minimum value = (0.0, start)\par
+\tab for address in route_copy:\par
+\tab\tab distance = distance_graph[address1, address2]\par
+\tab\tab if distance is less than minimum value:\par
+\tab\tab\tab minimum value = (minimum value, address)\par
+\tab if address is not in path_greedy:\par
+\tab\tab append address to path_greedy\par
+\tab remove address from root_copy\par
+\tab\par
+\b\lang9 B2:  \b0 Apply programming models to the scenario.\par
+
+\pard\widctlpar\fi720\sa160\sl252\slmult1\lang1033 HashMap\par
+
+\pard\widctlpar\li720\sa160\sl252\slmult1 find_pkg ( package ID ) :\par
+hash key = hash(package ID) % len (HashMap)\par
+bucket = HashMap [ hash key ]\par
+for pkg in bucket:\par
+\tab key = pkg[0]\par
+\tab if package ID == key:\par
+\tab\tab return pkg\par
+I used Python 3.7. Pycharm for IDE. CSV to exchange data. String module to parse strings. A local machine is used so the requirement need for interaction semantics defined by the application to control sequences is not necessary.\par
+\par
+
+\pard\box\brdrdash\brdrw0 \sa200\sl276\slmult1\b\lang9 B3: \b0 Space Time Complexity\par
+I have annotated the space time complexity throughout most blocks of the code. \f2\lang1033 The space-time complexity of greedy algorithm has a worst case runtime of O(N^2) and a best case runtime of O(1). \f0 The hashmap uses a "list of lists" approach. The time commitment is proportional to the number of items that are searched in the buckets, O(N). The nested for loops contributed to the worst case complexity of O(N^2). \lang9\par
+\b B4: \b0 Adaptability and Scalability\par
+The algorithm is quite adaptable. The parsing of data with special notes allows for flexibility. The truck loading will load the trucks in very efficient way. I adjusted how a package is determined to be a high priority based on the special notes that some of the packages contain. The strings are parsed to find the most important information and that is used to decide which trucks will receive the packages and what their time delay will be for leaving the station.  In addition, while the delivery is in process, packages can still be removed from trucks if they have not left the station. The packages can be canceled if they already left but haven't been delivered and the route will be readjusted. The numerous class attributes of the truck class allow for a great deal of modification of truck characteristics.\par
+It is designed to be able to scale well. My algorithm can easily incorporate added data to the Packages csv file and the program will determine which truck to place them in accordingly. The trucks maximum payload can be updated as well to incorporate the addition of many more packages if necessary. \par
+\b B5: \b0 Efficiency and Maintainability\par
+Overall the software is pretty efficient. The space time complexity is kept relatively low. The main page is simple and neat. Functions and classes are organized in an easy to read linear order. All of the functions and classes naming conventions are understandable. In addition, it makes it easier for debugging because it's maintainable in that the software has the same core functions that have been modified for the use case. You can easily refer to the functions where the errors occurred.\par
+\b B6: \b0 Data Structures used\par
+The main data structures used were lists and dictionaries. Lists are excellent in that they are mutable and can be changed and updated constantly (unlike tuples). This attribute makes them flexible and easy to work with. One can easily refer to a list's length (to obtain the # of packages, for instance) or change values within them. However there are certainly some weaknesses in using lists. The overhead can become higher as it uses linear search instead of logarithmic. I also used dictionaries for the graph class, as they are exponentially faster than lists, which is better for finding the optimal route.\par
+\b C: \b0 Original Code\par
+I provided the screenshots to show the package delivery status of all packages for each truck. multiple screenshots were needed to capture all the packages. I included numerous comments to explain the process and flow of the coding.\par
+\b D:\b0  My program uses hashmaps to store packages and acts as a lookup table. \lang1033 Hashmaps contain key-value pairs to store data. The key for each pair is made by using a hashing function to hash the value of the package id\lang9 . The package itself is located in the bucket. Then used a dictionary in the graph class for the vertices and edges. The edge is a tuple with (address1, address2) and the edge weight is the distance, which is the relationship between the data points.\par
+\b E, F, G, and H: \b0 Please refer to the program code and attached screenshots for the implementations of a Hash table, look up functions, interface, 3 status checks, and code execution.\par
+\b I1. \b0 Strengths\line Easy to make changes and very user friendly. Easy to add, remove, update and search. Very detailed and thorough. An advantage of using a greedy path algorithm is that it always takes the shortest route between 2 points to determine the best order. \f2\lang1033 Another advantage of the greedy algorithm is that it can scale with any set of data and addresses provided to it. \par
+\b I2: \b0 Verification\par
+The interface shows the results of the deliveries of all 3 trucks and meets the requirements.\f0\lang9\par
+\b I3: \b0 Alternatives\par
+The greedy algorithm is efficient but may not always find the "best" route. An alternative I could have used is the Floyd\f1\endash\f0 Warshall algorithm. This algorithm finds all possible paths through each pair of vertices in a graph. It does this by "incrementally improving an estimate on the shortest path between two vertices, until the estimate is optimal."\lang1033  This would probably give a more ideal path than the\lang9  greedy\lang1033  algorithm. Another idea would be to use dynamic programming, \f2 a problem solving technique that splits a problem into smaller subproblems. The advantage of using a dynamic approach is that I can store paths along a route and check if there is a speedier way to get to a location by first traveling to another location. However, this would increase the space-time complexity.\par
+\b J: \b0 Different Approaches\par
+If I were to do this project again, I would have used a dictionary for the HashMap (perhaps a dictionary of dictionaries) because it would make it much quicker for accessing keys and values rather than through indexes and list of buckets. I would also probably have changed the interface a little. For example, it would be nice to see only which packages were delivered between a certain time, instead of displaying the status of every single package, whether or not it has left the station.\par
+\b K1: \b0 Verification of Data Structure\par
+When the code is executed a verification is shown that shows the overall mileage of the trucks so far. It displays which packages are on which trucks, what their delivery deadlines are, and their current status (ie: at station, en route, delivered at \{time\}. In addition, user can review information of a single package at the current time that will be consistent with the full delivery simulation.\par
+\b K1abc:\b0  The efficiency is made more optimized by communication between the hash map and trucks. The packages are in list format which are mutable. The package is first placed into the hashmap. The hashmap is loaded into the graph vertices dictionary with the graph.place_packages function. Finally, the graph is used to place the individual packages onto the appropriate truck in the load_trucks function. During delivery, when a package on the truck is modified it is also automatically updated in the hashmap which allows the search feature to display the current information. The space complexity of the hashmap is O(N).\par
+The overhead when linking to the next data item in the hash map is slightly higher \f0\lang9 as it uses linear search. The overhead was kept minimal because using the overhead for the truck and packages help with validating accuracy.\f2\lang1033  As the number of packages increases it may exceed the maximum payload of the trucks. The trucks do have an attribute where the max_payload can be modified. Since trucks are a class, more truck classes can be created to handle increased number of packages as well. If different locations are added, the algorithm should still work as long as the distance adjacency matrix represents a fully connected graph. \f0 Since this is a local application that does not need to connect to any servers, there are no bandwidth constraints.\f2\par
+\b\f0\lang9 K2: \b0 Other data structures\par
+One Idea I could have tried was a binary search tree BST. This might have been better at presorting and loading the trucks more efficiently. Another idea might be Min Heap for finding the optimal route. Min Heap would use the distance of the node as the key to get the next closest node, "operation has an average-case complexity of O(1)".\par
+# Sources\par
+\ldblquote Floyd-Warshall Algorithm.\rdblquote  Wikipedia {{\field{\*\fldinst{HYPERLINK https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm }}{\fldrslt{https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm\ul0\cf0}}}}\f0\fs24\par
+"Min Heap" Wikipedia {{\field{\*\fldinst{HYPERLINK https://en.wikipedia.org/wiki/Binary_heap }}{\fldrslt{https://en.wikipedia.org/wiki/Binary_heap\ul0\cf0}}}}\f0\fs24\par
+
+\pard\sa200\sl276\slmult1\par
+}
+ 
